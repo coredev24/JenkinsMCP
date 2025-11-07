@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  jenkins-mcp:
+    build: .
+    ports:
+      - "8081:8081"
+    environment:
+      - JENKINS_URL=${JENKINS_URL:-http://jenkins:8080}
+      - JENKINS_USER=${JENKINS_USER:-admin}
+      - JENKINS_TOKEN=${JENKINS_TOKEN}
+      - JENKINS_AUTH_METHOD=${JENKINS_AUTH_METHOD:-API_TOKEN}
+      - MCP_SERVER_LOG_LEVEL=${MCP_SERVER_LOG_LEVEL:-INFO}
+      - MCP_SERVER_JSON_LOGS=${MCP_SERVER_JSON_LOGS:-true}
+    volumes:
+      - ./logs:/app/logs
+      - ./config:/app/config
+    restart: unless-stopped
+    depends_on:
+      - jenkins
+    networks:
+      - jenkins-network
+
+  jenkins:
+    image: jenkins/jenkins:lts
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    environment:
+      - JENKINS_OPTS=--httpPort=8080
+    volumes:
+      - jenkins_data:/var/jenkins_home
+    networks:
+      - jenkins-network
+
+volumes:
+  jenkins_data:
+
+networks:
+  jenkins-network:
+    driver: bridge
